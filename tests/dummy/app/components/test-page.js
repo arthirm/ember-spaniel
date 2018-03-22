@@ -19,7 +19,12 @@ export default Component.extend({
     let viewport = this.get('viewport');
     let first = document.getElementById("item-1");
     let second = document.getElementById('item-5');
-    let third = document.getElementById('item-100');
+    let third = document.getElementById('item-5');
+    let fourth = document.getElementById('item-100');
+    let childFirst = document.getElementById('child-item-3');
+    let childSecond = document.getElementById('child-item-10');
+    let childThird = document.getElementById('child-item-100');
+    let childRoot = document.getElementById('childContainer');
 
     viewport.isInViewport(first).then(() => {
       $(first).addClass('isInViewport');
@@ -29,8 +34,8 @@ export default Component.extend({
       $(second).addClass('onInViewportOnce');
     }));
 
-    this.cleanupTasks.push(viewport.onInViewportOnce(second, () => {
-      $(second).addClass('onInViewportOnceCustom');
+    this.cleanupTasks.push(viewport.onInViewportOnce(third, () => {
+      Ember.$(third).addClass('onInViewportOnceCustom');
     }, {
       rootMargin: {
         top: 10,
@@ -40,10 +45,34 @@ export default Component.extend({
       }
     }));
 
-    this.cleanupTasks.push(viewport.onInViewportOnce(third, () => {
-      $(third).addClass('unreachable-onInViewportOnce');
+    this.cleanupTasks.push(viewport.onInViewportOnce(fourth, () => {
+      Ember.$(fourth).addClass('unreachable-onInViewportOnce');
     }));
 
+    // CHILD ROOT
+
+    this.cleanupTasks.push(viewport.onInViewportOnce(childFirst, () => {
+      Ember.$(childFirst).addClass('childOnInViewportOnce');
+    }, {
+      root: childRoot
+    }));
+
+    this.cleanupTasks.push(viewport.onInViewportOnce(childSecond, () => {
+      Ember.$(childSecond).addClass('childOnInViewportOnce');
+    }, {
+      root: childRoot
+    }));
+
+    this.cleanupTasks.push(viewport.onInViewportOnce(childThird, () => {
+      Ember.$(childThird).addClass('childOnInViewportOnce');
+    }, {
+      root: childRoot
+    }));
+
+    viewport.on('scroll', this.onIsDirty.bind(this), childRoot);
+  },
+  onIsDirty() {
+    this.get('viewport').revalidate();
   },
   willDestroyElement() {
     this._super(...arguments);

@@ -47,13 +47,15 @@ export default Service.extend({
     });
   },
 
-  onInViewportOnce(el, callback, { context, rootMargin, ratio } = {}) {
+  onInViewportOnce(el, callback, { context, rootMargin, ratio, root = window } = {}) {
     const canUseGlobalWatcher = !(rootMargin || ratio);
-    let watcher = canUseGlobalWatcher ? this.getWatcher() : new spaniel.Watcher({ rootMargin, ratio });
+    let watcher = canUseGlobalWatcher ? this.getWatcher() : new spaniel.Watcher({ rootMargin, ratio, root });
+
     watcher.watch(el, function onInViewportOnceCallback() {
       callback.apply(context, arguments);
       watcher.unwatch(el);
     });
+ 
     return function clearOnInViewportOnce() {
       watcher.unwatch(el);
       if (!canUseGlobalWatcher) {
@@ -66,5 +68,30 @@ export default Service.extend({
     if (this._globalWatcher) {
       this._globalWatcher.destroy();
     }
+  },
+
+  revalidate() {
+    let watcher = this.getWatcher();    
+    watcher.forceStateValidation();
+  },
+
+  on(eventName, callback, root = window) {
+    root.addEventListener(eventName, callback, false);
+  },
+
+  off(eventName, callback, root = window) {
+    root.removeEventListener(eventName, callback, false);
+  },
+
+  onDebounce(eventName, callback, interval, root = window) {
+    this.on(eventName, _debounce(callback, interval), root);
   }
 });
+
+function _debounce(callback, interval = 5) {
+  let _tmp = null;
+  return () => {
+    clearTimeout(_tmp);
+    _tmp = setTimeout(callback, interval);
+  }
+}
